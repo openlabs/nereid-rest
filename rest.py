@@ -51,10 +51,14 @@ class NereidRest(ModelSQL):
             domain = json.loads(
                 request.args.get('domain', '[]')
             )
+            order = json.loads(
+                request.args.get('order', '[]')
+            )
             records = Pagination(
                 Model, domain,
                 page=request.args.get('page', 1, int),
-                per_page=min([request.args.get('per_page', 10, int), 100])
+                per_page=min([request.args.get('per_page', 10, int), 100]),
+                order=order
             )
             return jsonify(records.serialize())
 
