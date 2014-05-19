@@ -18,7 +18,7 @@ GET, POST           /rest/model/<mode.name>
 
 ================    ===============================================
 
-To get a specific record from a model:
+To request a specific record from a model:
 
 ================    ===============================================
 
@@ -38,4 +38,4 @@ Get data of record with id 5 from ``party.party`` model::
 
 By default you only get the ``id`` and ``rec_name`` if there's no ``serialize`` method in the model.
 
-But, if there's a serialize method in the model, nereid-rest will return whatever ``serialize`` method returns.
+But, if there's a ``serialize`` method in the model, nereid-rest will return whatever ``serialize`` method returns.
