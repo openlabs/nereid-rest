@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<form string="Nereid Rest" col="8">
+    <label name="permission" />
+    <field name="permission" />
+    <label name="model" />
+    <field name="model" />
+    <group col="10" colspan="4" id="methods">
+        <label name="allow_get" />
+        <field name="allow_get" />
+        <label name="allow_post" />
+        <field name="allow_post" />
+        <label name="allow_patch" />
+        <field name="allow_patch" />
+        <label name="allow_put" />
+        <field name="allow_put" />
+        <label name="allow_delete" />
+        <field name="allow_delete" />
+    </group>
+</form>

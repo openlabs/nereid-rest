@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<tryton>
+  <data>
+      <record model="ir.ui.view" id="nereid_rest_view_form">
+          <field name="model">nereid.rest.permission</field>
+          <field name="type">form</field>
+          <field name="name">nereid_rest_form</field>
+      </record>
+      <record model="ir.ui.view" id="nereid_rest_view_tree">
+          <field name="model">nereid.rest.permission</field>
+          <field name="type">tree</field>
+          <field name="name">nereid_rest_tree</field>
+      </record>
+      <record model="ir.action.act_window" id="act_nereid_rest_form">
+          <field name="name">Nereid Rest</field>
+          <field name="res_model">nereid.rest.permission</field>
+        </record>
+      <record model="ir.action.act_window.view" id="act_nereid_rest_form_view1">
+          <field name="sequence" eval="10" />
+          <field name="view" ref="nereid_rest_view_tree" />
+          <field name="act_window" ref="act_nereid_rest_form" />
+      </record>
+      <record model="ir.action.act_window.view" id="act_nereid_rest_form_view2">
+          <field name="sequence" eval="20" />
+          <field name="view" ref="nereid_rest_view_form" />
+          <field name="act_window" ref="act_nereid_rest_form" />
+      </record>
+      <menuitem parent="nereid.menu_nereid_configuration" action="act_nereid_rest_form"
+        id="menu_nereid_rest_form" sequence="5"/>
+  </data>
+</tryton>
