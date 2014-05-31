@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
-<tree>
+<tree editable="top">
     <field name="permission" />
     <field name="model" />
+    <field name="allow_get" />
+    <field name="allow_post" />
+    <field name="allow_put" />
+    <field name="allow_patch" />
+    <field name="allow_delete" />
 </tree>
