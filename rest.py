@@ -8,11 +8,11 @@
 from flask import json
 
 from trytond.pool import Pool
-from trytond.model import ModelSQL
-from nereid import route, jsonify, request, login_required, abort
+from trytond.model import ModelSQL, ModelView, fields
+from nereid import route, jsonify, request, login_required, abort, current_user
 from nereid.contrib.pagination import Pagination
 
-__all__ = ['NereidRest']
+__all__ = ['NereidRest', 'NereidRestPermission']
 
 
 class NereidRest(ModelSQL):
@@ -112,11 +112,43 @@ class NereidRest(ModelSQL):
     @classmethod
     def _validate_model(cls, model_name):
         """
-        Returns model if it exists otherwise throws 404 if it doesn't.
+        Returns model if current Nereid user has permission otherwise
+        throws 403.
         """
-        # TODO: Handle user permissions.
-        try:
-            Model = Pool().get(model_name, type='model')
-        except KeyError:
-            abort(404)
+        RestPermission = Pool().get('nereid.rest.permission')
+
+        permission = RestPermission.search([
+            ('model.model', '=', model_name),
+            ('allow_%s' % request.method.lower(), '=', True),
+            ('permission', 'in', current_user.permissions),
+        ])
+        if not permission:
+            abort(403)
+        Model = Pool().get(model_name, type='model')
         return Model
+
+
+class NereidRestPermission(ModelSQL, ModelView):
+    "Nereid REST Permission"
+    __name__ = "nereid.rest.permission"
+
+    permission = fields.Many2One(
+        'nereid.permission', 'Nereid Permission', required=True, select=True
+    )
+    model = fields.Many2One('ir.model', 'Model', required=True, select=True)
+    allow_get = fields.Boolean('GET')
+    allow_post = fields.Boolean('POST')
+    allow_put = fields.Boolean('PUT')
+    allow_patch = fields.Boolean('PATCH')
+    allow_delete = fields.Boolean('DELETE')
+
+    @classmethod
+    def __setup__(cls):
+        super(NereidRestPermission, cls).__setup__()
+        cls._sql_constraints += [
+            (
+                'unique_model_permission',
+                'UNIQUE(permission, model)',
+                'Model must be unique per Nereid permission.',
+            ),
+        ]

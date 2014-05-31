@@ -6,11 +6,12 @@
     :license: BSD, see LICENSE for more details.
 """
 from trytond.pool import Pool
-from rest import NereidRest
+from rest import NereidRest, NereidRestPermission
 
 
 def register():
     Pool.register(
         NereidRest,
+        NereidRestPermission,
         module='nereid_rest', type_='model'
     )

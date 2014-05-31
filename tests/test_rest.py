@@ -39,6 +39,9 @@ class RestTestCase(NereidTestCase):
         self.Language = POOL.get('ir.lang')
         self.NereidWebsite = POOL.get('nereid.website')
         self.Locale = POOL.get('nereid.website.locale')
+        self.nereid_permission = POOL.get('nereid.permission')
+        self.nereid_rest_permission = POOL.get('nereid.rest.permission')
+        self.Model = POOL.get('ir.model')
 
     def setup_defaults(self):
         '''
@@ -56,22 +59,16 @@ class RestTestCase(NereidTestCase):
             'party': self.company_party.id,
             'currency': self.usd.id
         }])
-        self.guest_party, self.registered_party = self.Party.create([{
-            'name': 'Guest User',
-        }, {
-            'name': 'Registered User',
-        }])
+        self.guest_party, self.registered_party, self.user = self.Party.create(
+            [
+                {'name': 'Guest User'},
+                {'name': 'Normal User'},
+                {'name': 'Registered User'},
+            ])
         self.guest_user, = self.NereidUser.create([{
             'party': self.guest_party.id,
             'display_name': 'Guest User',
             'email': 'guest@openlabs.co.in',
-            'password': 'password',
-            'company': self.company.id,
-        }])
-        self.registered_user, = self.NereidUser.create([{
-            'party': self.registered_party.id,
-            'display_name': 'Registered User',
-            'email': 'email@example.com',
             'password': 'password',
             'company': self.company.id,
         }])
@@ -112,10 +109,57 @@ class RestTestCase(NereidTestCase):
         self.actor_party, = self.Party.create([{
             'name': 'Party1',
         }])
-        nereid_user, = self.NereidUser.create([{
-            'party': self.user_party.id,
+
+        # Nereid permission for Admin
+        perm_admin, = self.nereid_permission.create([{
+            'name': 'Admin',
+            'value': 'admin',
+        }])
+        # Nereid permission for users
+        perm_user, = self.nereid_permission.create([{
+            'name': 'User',
+            'value': 'user',
+        }])
+        # Nereid Rest permission to admin for party.party model
+        rest_admin_party, = self.nereid_rest_permission.create([{
+            'permission': perm_admin,
+            'model': self.Model.search(['model', '=', 'party.party'])[0],
+            'allow_get': True,
+            'allow_put': True,
+            'allow_patch': True,
+            'allow_delete': True,
+            'allow_post': True,
+        }])
+
+        # Nereid Rest permission to admin for nereid.user model
+        rest_admin_nereid_user, = self.nereid_rest_permission.create([{
+            'permission': perm_admin,
+            'model': self.Model.search(['model', '=', 'nereid.user'])[0],
+            'allow_get': True,
+        }])
+
+        # Nereid Rest permission to User for party.party model
+        rest_user_party, = self.nereid_rest_permission.create([{
+            'permission': perm_user,
+            'model': self.Model.search(['model', '=', 'party.party'])[0],
+            'allow_post': True,
+        }])
+
+        self.admin_user, = self.NereidUser.create([{
+            'party': self.registered_party.id,
+            'display_name': 'Registered User',
+            'email': 'email@example.com',
+            'password': 'password',
             'company': self.company.id,
-            'display_name': self.user_party.rec_name
+            'permissions': [('set', [perm_admin])],
+        }])
+        self.user, = self.NereidUser.create([{
+            'party': self.user_party.id,
+            'display_name': 'Normal User',
+            'email': 'user@example.com',
+            'password': 'password',
+            'company': self.company.id,
+            'permissions': [('set', [perm_user])],
         }])
 
     def test0010_rest(self):
@@ -194,15 +238,44 @@ class RestTestCase(NereidTestCase):
                 # There should be one less record after successful DELETE.
                 self.assertEqual(len(self.Party.search([])), len(parties))
 
-                # Accessing invalid model should raise 404
-                rv = c.get('/rest/model/invalid.model')
-                self.assertEqual(rv.status_code, 404)
-
                 user = self.NereidUser(1)
                 # Accessing model which has serialize method
                 rv = c.get('/rest/model/nereid.user/%d' % user.id)
                 json_rv = json.loads(rv.data)
                 self.assertIn('display_name', json_rv)
+
+    def test0020_rest_permission(self):
+        '''
+        Test Nereid REST permission
+        '''
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.setup_defaults()
+            app = self.get_app()
+
+            with app.test_client() as c:
+                # Login success
+                rv = c.post('/login', data={
+                    'email': 'user@example.com',
+                    'password': 'password'
+                })
+                self.assertEqual(rv.location, 'http://localhost/')
+                self.assertEqual(rv.status_code, 302)
+
+                # User doesn't have GET permission for party.party
+                rv = c.get('/rest/model/party.party')
+                self.assertEqual(rv.status_code, 403)
+
+                # User has POST permission for party.party
+                rv = c.post(
+                    '/rest/model/party.party',
+                    data=json.dumps({'name': 'Some User'}),
+                    headers={'content-type': 'application/json'}
+                )
+                self.assertEqual(rv.status_code, 201)
+
+                # User doesn't have DELETE permission for party.party
+                rv = c.get('/rest/model/party.party/%d' % self.party.id)
+                self.assertEqual(rv.status_code, 403)
 
 
 def suite():
