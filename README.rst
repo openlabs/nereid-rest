@@ -53,7 +53,7 @@ So, for example, user having access to only ``GET``, won't be able to access
 any of the other HTTP methods, like ``POST`` to create a new record for that model.
 
 
-**Tip**
+**Tip** : 
 *It's advisable to only allow HTTP methods which the user should have access to.
 You don't want to create a security hole in your application by allowing access to models
 and HTTP methods, which the user shouldn't have access to.*
