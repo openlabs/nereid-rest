@@ -13,3 +13,5 @@ script:
 notification:
     email:
         - ci-notify@openlabs.co.in
+after_success:
+      coveralls
