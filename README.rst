@@ -3,7 +3,7 @@ Nereid Rest
 
 .. image:: https://travis-ci.org/openlabs/nereid-rest.svg?branch=develop
     :target: https://travis-ci.org/openlabs/nereid-rest
-.. image:: https://coveralls.io/repos/openlabs/nereid-rest/badge.png
+.. image:: https://coveralls.io/repos/openlabs/nereid-rest/badge.png?branch=develop
   :target: https://coveralls.io/r/openlabs/nereid-rest
 
 Nereid Rest is a tryton module which adds RESTful API to `Nereid <https://github.com/openlabs/nereid>`_.
